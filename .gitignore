@@ -1,0 +1,37 @@
+# CV-ZTTE
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets / keys (never commit private key material)
+*.key
+*.pem
+secrets/
+*.priv
+
+# Local toolchain build logs / artifacts
+*.log
+/artifacts/**/*.bin
+/artifacts/**/*.srs
+/artifacts/**/*.pk
+/artifacts/**/*.vk
+/artifacts/**/*.onnx
+/artifacts/**/*.proof
+
+# Go
+/services/zk-authz/zk-authz
+/services/zk-authz/**/*.test
+
+# FHE / C++ build
+/services/fhe-broker/build/
+/smoke/openfhe/build/
+
+# EZKL artifacts: large proving key/SRS, built by a trusted ceremony
+# (python -m cvztte.ezkl.build), pinned by manifest hashes, never committed.
+/cvztte/ezkl/artifacts/
+
+# Requirements lock is committed; venv is not

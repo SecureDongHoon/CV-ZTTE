@@ -1,0 +1,43 @@
+{
+  "decision_encoding": [
+    "UNSAFE",
+    "REVIEW",
+    "SAFE"
+  ],
+  "feature_extractor_hash": "sha256:4f521610de15fd54046e3ca9f1515f8a88cd2ff6a2d39ab7f62ffdbb31ced985",
+  "feature_extractor_version": 1,
+  "feature_names": [
+    "act_write",
+    "act_external_network",
+    "act_secret_access",
+    "act_destructive",
+    "act_code_or_shell",
+    "act_message_out",
+    "data_classification",
+    "policy_risk_level",
+    "policy_require_human_approval",
+    "policy_require_ezkl",
+    "containment_severity",
+    "destination_external",
+    "destination_unknown",
+    "has_delegation",
+    "beh_actions_10s",
+    "beh_actions_60s",
+    "beh_sensitive_reads_5m",
+    "beh_external_bytes",
+    "beh_secret_access_count",
+    "beh_policy_denials",
+    "beh_priv_escalation_attempts",
+    "beh_new_external_destination",
+    "beh_destructive_count",
+    "beh_message_fanout",
+    "beh_bypass_attempts"
+  ],
+  "judge_version": 1,
+  "manifest_version": 1,
+  "margin": 0.15,
+  "model_hash": "sha256:37d8e6f8d961c1e18df7e77109ea07e18a05c17752c140da52a87af9161c41e9",
+  "n_features": 25,
+  "onnx_file": "judge_mlp.onnx",
+  "onnx_opset": 17
+}

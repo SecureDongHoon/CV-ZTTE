@@ -1,0 +1,20 @@
+# CV-ZTTE Python dependencies (Phase 0 baseline; versions pinned after resolution).
+# Control-plane / API
+fastapi
+uvicorn[standard]
+pydantic>=2
+httpx
+# Canonicalization / crypto helpers (JCS, hashing); ML-DSA itself is via OpenSSL 3.5 CLI/EVP
+rfc8785
+# Replay / state
+redis
+# Safety Judge (small MLP) + ZKML pipeline
+torch
+onnx
+onnxruntime
+numpy
+ezkl
+# Testing
+pytest
+pytest-asyncio
+anyio

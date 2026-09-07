@@ -1,0 +1,41 @@
+# CV-ZTTE reference compose (§49). HONEST SCOPE:
+#
+# This file stands up the two infrastructure dependencies that have clean
+# upstream images and are genuinely useful for local development — Redis (atomic
+# replay/freshness store) and OPA (policy). The CV-ZTTE control plane and native
+# services (gateway, zk-authz, fhe-broker, key authorities, decrypt-coordinator)
+# require the user-local toolchain assembled by `env.sh` (OpenSSL 3.5, Go 1.27,
+# OpenFHE 1.5.1) which is NOT captured in a stock image here — building those
+# images is part of the enterprise-reference deployment skeleton and is
+# deliberately never production-certified (§53). The `gateway` service below is
+# therefore a documented skeleton, commented out until a custom image exists.
+#
+# See docs/DEPLOYMENT.md and docs/FINAL_SECURITY_REVIEW.md (§29 production gaps).
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--loglevel", "warning"]
+    ports:
+      - "127.0.0.1:6379:6379"
+
+  opa:
+    image: openpolicyagent/opa:latest
+    command: ["run", "--server", "--addr", "0.0.0.0:8181", "/policy"]
+    volumes:
+      - ./policy/rego:/policy:ro
+    ports:
+      - "127.0.0.1:8181:8181"
+
+  # gateway:
+  #   # Requires a custom image built with the env.sh toolchain (OpenSSL 3.5+ for
+  #   # native ML-DSA, plus the Python venv). Enterprise-reference skeleton only.
+  #   build: .            # add a Dockerfile that installs the env.sh toolchain
+  #   command: ["python", "apps/gateway/server.py"]
+  #   environment:
+  #     CVZTTE_HOST: "0.0.0.0"
+  #     CVZTTE_PORT: "8080"
+  #     CVZTTE_POLICY_BUNDLE: "/app/policy/rego"
+  #   ports:
+  #     - "127.0.0.1:8080:8080"
+  #   depends_on: [redis, opa]

@@ -1,0 +1,152 @@
+"""CV-ZTTE structured error taxonomy (spec §50, §60.30).
+
+Every security-relevant failure maps to a stable ``ErrorCode``. External
+responses MUST NOT leak secrets, key shares, witness data, internal paths, or
+stack traces (spec §50); :meth:`CVZTTEError.public_dict` produces the
+safe-to-return representation, while :attr:`CVZTTEError.detail` stays internal.
+
+Fail-closed principle (spec §4.20): no security-subsystem error path may map to
+an implicit ALLOW. Callers translate these errors into DENY/QUARANTINE/ESCALATE.
+"""
+
+from __future__ import annotations
+
+import enum
+from typing import Any
+
+
+class ErrorCode(str, enum.Enum):
+    # --- Parser / schema ---
+    SCHEMA_INVALID = "SCHEMA_INVALID"
+    DUPLICATE_JSON_KEY = "DUPLICATE_JSON_KEY"
+    PAYLOAD_TOO_LARGE = "PAYLOAD_TOO_LARGE"
+    ACTION_HASH_MISMATCH = "ACTION_HASH_MISMATCH"
+
+    # --- Agent / key / ML-DSA ---
+    AGENT_UNKNOWN = "AGENT_UNKNOWN"
+    AGENT_DISABLED = "AGENT_DISABLED"
+    KEY_UNKNOWN = "KEY_UNKNOWN"
+    KEY_REVOKED = "KEY_REVOKED"
+    MLDSA_INVALID = "MLDSA_INVALID"
+    CRYPTO_PROVIDER_UNAVAILABLE = "CRYPTO_PROVIDER_UNAVAILABLE"
+
+    # --- Replay / session / delegation ---
+    REQUEST_EXPIRED = "REQUEST_EXPIRED"
+    NONCE_REPLAY = "NONCE_REPLAY"
+    SEQUENCE_INVALID = "SEQUENCE_INVALID"
+    SESSION_UNKNOWN = "SESSION_UNKNOWN"
+    SESSION_EXPIRED = "SESSION_EXPIRED"
+    DELEGATION_INVALID = "DELEGATION_INVALID"
+    POLICY_HASH_MISMATCH = "POLICY_HASH_MISMATCH"
+
+    # --- OPA ---
+    OPA_DENY = "OPA_DENY"
+    OPA_UNAVAILABLE = "OPA_UNAVAILABLE"
+
+    # --- gnark ---
+    GNARK_CREDENTIAL_INVALID = "GNARK_CREDENTIAL_INVALID"
+    GNARK_PROOF_INVALID = "GNARK_PROOF_INVALID"
+    GNARK_PUBLIC_INPUT_MISMATCH = "GNARK_PUBLIC_INPUT_MISMATCH"
+    GNARK_ARTIFACT_UNAPPROVED = "GNARK_ARTIFACT_UNAPPROVED"
+
+    # --- Behavior ---
+    BEHAVIOR_RISK_HIGH = "BEHAVIOR_RISK_HIGH"
+    BEHAVIOR_STATE_CONFLICT = "BEHAVIOR_STATE_CONFLICT"
+
+    # --- Judge / EZKL ---
+    JUDGE_UNSAFE = "JUDGE_UNSAFE"
+    JUDGE_REVIEW = "JUDGE_REVIEW"
+    JUDGE_FAILED = "JUDGE_FAILED"
+    EZKL_PROOF_INVALID = "EZKL_PROOF_INVALID"
+    EZKL_PUBLIC_INPUT_MISMATCH = "EZKL_PUBLIC_INPUT_MISMATCH"
+    EZKL_ARTIFACT_UNAPPROVED = "EZKL_ARTIFACT_UNAPPROVED"
+    EZKL_QUANTIZATION_GUARD = "EZKL_QUANTIZATION_GUARD"
+    EZKL_TIMEOUT = "EZKL_TIMEOUT"
+
+    # --- Approval ---
+    APPROVAL_REQUIRED = "APPROVAL_REQUIRED"
+    APPROVAL_EXPIRED = "APPROVAL_EXPIRED"
+
+    # --- Token / receipt / enforcement ---
+    FINAL_ACTION_BINDING_FAILED = "FINAL_ACTION_BINDING_FAILED"
+    DECISION_TOKEN_INVALID = "DECISION_TOKEN_INVALID"
+    DECISION_TOKEN_EXPIRED = "DECISION_TOKEN_EXPIRED"
+    DECISION_TOKEN_REPLAY = "DECISION_TOKEN_REPLAY"
+    DECISION_TOKEN_EPOCH_STALE = "DECISION_TOKEN_EPOCH_STALE"
+    DECISION_TOKEN_AUDIENCE_MISMATCH = "DECISION_TOKEN_AUDIENCE_MISMATCH"
+    AUDIT_CHAIN_BROKEN = "AUDIT_CHAIN_BROKEN"
+    TOOL_BYPASS_DENIED = "TOOL_BYPASS_DENIED"
+    NETWORK_BYPASS_DENIED = "NETWORK_BYPASS_DENIED"
+    EXECUTION_FAILED = "EXECUTION_FAILED"
+    SECURITY_DEPENDENCY_UNAVAILABLE = "SECURITY_DEPENDENCY_UNAVAILABLE"
+
+    # --- Enforcement fabric / brokers ---
+    ENFORCEMENT_DENIED = "ENFORCEMENT_DENIED"
+    FILE_PATH_ESCAPE = "FILE_PATH_ESCAPE"
+    FILE_ACCESS_DENIED = "FILE_ACCESS_DENIED"
+    EGRESS_DENIED = "EGRESS_DENIED"
+    PROCESS_COMMAND_DENIED = "PROCESS_COMMAND_DENIED"
+    SECRET_DISCLOSURE_FORBIDDEN = "SECRET_DISCLOSURE_FORBIDDEN"
+    SECRET_UNKNOWN = "SECRET_UNKNOWN"
+    OUTPUT_DENIED = "OUTPUT_DENIED"
+    MESSAGE_DENIED = "MESSAGE_DENIED"
+    MCP_BYPASS_DENIED = "MCP_BYPASS_DENIED"
+
+    # --- Containment / capability ---
+    CONTAINMENT_SUSPICIOUS = "CONTAINMENT_SUSPICIOUS"
+    CONTAINMENT_RESTRICTED = "CONTAINMENT_RESTRICTED"
+    CONTAINMENT_QUARANTINED = "CONTAINMENT_QUARANTINED"
+    CONTAINMENT_TERMINATED = "CONTAINMENT_TERMINATED"
+    CAPABILITY_DECAY_DENY = "CAPABILITY_DECAY_DENY"
+    CAPABILITY_EPOCH_MISMATCH = "CAPABILITY_EPOCH_MISMATCH"
+    RECOVERY_APPROVAL_REQUIRED = "RECOVERY_APPROVAL_REQUIRED"
+
+    # --- Onboarding / deployment modes ---
+    CONFORMANCE_FAILED = "CONFORMANCE_FAILED"
+    ACTIVATION_BLOCKED = "ACTIVATION_BLOCKED"
+    MODE_CHANGE_FORBIDDEN = "MODE_CHANGE_FORBIDDEN"
+
+    # --- FHE / CAC ---
+    FHE_CONTEXT_UNKNOWN = "FHE_CONTEXT_UNKNOWN"
+    FHE_CONTEXT_UNAPPROVED = "FHE_CONTEXT_UNAPPROVED"
+    FHE_CONTEXT_MISMATCH = "FHE_CONTEXT_MISMATCH"
+    FHE_KEY_EPOCH_MISMATCH = "FHE_KEY_EPOCH_MISMATCH"
+    FHE_CIPHERTEXT_INVALID = "FHE_CIPHERTEXT_INVALID"
+    FHE_CIPHERTEXT_TOO_LARGE = "FHE_CIPHERTEXT_TOO_LARGE"
+    FHE_PROGRAM_UNKNOWN = "FHE_PROGRAM_UNKNOWN"
+    FHE_PROGRAM_DENIED = "FHE_PROGRAM_DENIED"
+    FHE_COMPUTE_DENIED = "FHE_COMPUTE_DENIED"
+    FHE_COMPUTE_FAILED = "FHE_COMPUTE_FAILED"
+    FHE_COMPUTE_TIMEOUT = "FHE_COMPUTE_TIMEOUT"
+    FHE_DECRYPT_DENIED = "FHE_DECRYPT_DENIED"
+    FHE_THRESHOLD_INSUFFICIENT = "FHE_THRESHOLD_INSUFFICIENT"
+    FHE_PARTIAL_DECRYPT_INVALID = "FHE_PARTIAL_DECRYPT_INVALID"
+    FHE_RESULT_RELEASE_DENIED = "FHE_RESULT_RELEASE_DENIED"
+    FHE_PRIVACY_BUDGET_EXCEEDED = "FHE_PRIVACY_BUDGET_EXCEEDED"
+    FHE_QUERY_PATTERN_RISK = "FHE_QUERY_PATTERN_RISK"
+
+
+class CVZTTEError(Exception):
+    """Base CV-ZTTE error carrying a stable :class:`ErrorCode`.
+
+    ``detail`` is for internal audit/logs only and may contain diagnostic
+    context (never secrets). ``public_dict`` returns the sanitized shape safe
+    to hand back across a trust boundary.
+    """
+
+    def __init__(self, code: ErrorCode, message: str = "", detail: Any = None) -> None:
+        self.code = code
+        self.message = message or code.value
+        self.detail = detail
+        super().__init__(f"{code.value}: {self.message}")
+
+    def public_dict(self) -> dict[str, str]:
+        """Safe external representation: code + generic message only."""
+        return {"error_code": self.code.value, "error": self.message}
+
+
+class StrictParseError(CVZTTEError):
+    """Strict parser / canonicalization rejection (spec §8)."""
+
+    def __init__(self, code: ErrorCode, message: str = "", detail: Any = None) -> None:
+        super().__init__(code, message, detail)
